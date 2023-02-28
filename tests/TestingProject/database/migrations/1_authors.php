@@ -8,10 +8,13 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('migration_table_name_table', function (Blueprint $table) {
+        Schema::create('authors', function (Blueprint $table) {
             $table->id();
 
-            // add fields
+            $table->string('name');
+            $table->string('country_of_origin');
+            $table->text('bio');
+            $table->timestamp('born_at');
 
             $table->timestamps();
         });

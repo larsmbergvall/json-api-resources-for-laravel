@@ -1,10 +1,10 @@
 <?php
 
-namespace VendorName\Skeleton\Tests;
+namespace Larsmbergvall\JsonApiResourcesForLaravel\Tests;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use VendorName\Skeleton\SkeletonServiceProvider;
+use Larsmbergvall\JsonApiResourcesForLaravel\JsonApiResourcesForLaravelServiceProvider;
 
 class TestCase extends Orchestra
 {
@@ -13,14 +13,14 @@ class TestCase extends Orchestra
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'VendorName\\Skeleton\\Database\\Factories\\'.class_basename($modelName).'Factory'
+            fn (string $modelName) => 'Larsmbergvall\\JsonApiResourcesForLaravel\\Tests\\TestingProject\\Database\\Factories\\'.class_basename($modelName).'Factory'
         );
     }
 
     protected function getPackageProviders($app)
     {
         return [
-            SkeletonServiceProvider::class,
+            JsonApiResourcesForLaravelServiceProvider::class,
         ];
     }
 
@@ -28,9 +28,14 @@ class TestCase extends Orchestra
     {
         config()->set('database.default', 'testing');
 
-        /*
-        $migration = include __DIR__.'/../database/migrations/create_skeleton_table.php.stub';
-        $migration->up();
-        */
+        $migrations = [
+            __DIR__ . '/TestingProject/database/migrations/1_authors.php',
+            __DIR__ . '/TestingProject/database/migrations/2_books.php',
+        ];
+
+        foreach ($migrations as $migrationPath) {
+            $migration = include $migrationPath;
+            $migration->up();
+        }
     }
 }

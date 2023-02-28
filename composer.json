@@ -1,24 +1,24 @@
 {
-    "name": ":vendor_slug/:package_slug",
-    "description": ":package_description",
+    "name": "larsmbergvall/json-api-resources-for-laravel",
+    "description": "Simple JSON:API resource package for Laravel",
     "keywords": [
-        ":vendor_name",
+        "larsmbergvall",
         "laravel",
-        ":package_slug"
+        "json-api-resources-for-laravel"
     ],
-    "homepage": "https://github.com/:vendor_slug/:package_slug",
+    "homepage": "https://github.com/larsmbergvall/json-api-resources-for-laravel",
     "license": "MIT",
     "authors": [
         {
-            "name": ":author_name",
-            "email": "author@domain.com",
+            "name": "Lars Bergvall",
+            "email": "lars.m.bergvall@gmail.com",
             "role": "Developer"
         }
     ],
     "require": {
-        "php": "^8.1",
+        "php": "^8.1|^8.2",
         "spatie/laravel-package-tools": "^1.14.0",
-        "illuminate/contracts": "^9.0"
+        "illuminate/contracts": "^9.0|^10.0"
     },
     "require-dev": {
         "laravel/pint": "^1.0",
@@ -35,13 +35,13 @@
     },
     "autoload": {
         "psr-4": {
-            "VendorName\\Skeleton\\": "src",
-            "VendorName\\Skeleton\\Database\\Factories\\": "database/factories"
+            "Larsmbergvall\\JsonApiResourcesForLaravel\\": "src",
+            "Larsmbergvall\\JsonApiResourcesForLaravel\\Database\\Factories\\": "database/factories"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "VendorName\\Skeleton\\Tests\\": "tests"
+            "Larsmbergvall\\JsonApiResourcesForLaravel\\Tests\\": "tests"
         }
     },
     "scripts": {
@@ -61,10 +61,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "VendorName\\Skeleton\\SkeletonServiceProvider"
+                "Larsmbergvall\\JsonApiResourcesForLaravel\\JsonApiResourcesForLaravelServiceProvider"
             ],
             "aliases": {
-                "Skeleton": "VendorName\\Skeleton\\Facades\\Skeleton"
+                "JsonApiResourcesForLaravel": "Larsmbergvall\\JsonApiResourcesForLaravel\\Facades\\JsonApiResourcesForLaravel"
             }
         }
     },
