@@ -22,8 +22,16 @@ class JsonApiResource implements JsonSerializable
 
     protected ReflectionClass $reflectionClass;
 
+    protected string $type;
+
+    /** @var array<string, mixed> */
+    protected array $attributes;
+
+    /** @var array<string, JsonApiRelationship> */
+    protected array $relationships;
+
     /**
-     * @param  TModel  $model
+     * @param  TModel|JsonApiResourceContract  $model
      */
     public function __construct(protected mixed $model)
     {
@@ -43,15 +51,15 @@ class JsonApiResource implements JsonSerializable
 
     public function jsonSerialize(): array
     {
-        if (! $this instanceof JsonApiResourceContract) {
-            $this->ensureReflectionClassIsCreated();
+        if (! $this->isPrepared()) {
+            $this->prepare();
         }
 
         $data = [
             'id' => $this->model->id,
-            'type' => $this->parseType(),
-            'attributes' => $this->parseAttributes(),
-            'relationships' => $this->parseRelationships(),
+            'type' => $this->type,
+            'attributes' => $this->attributes,
+            'relationships' => $this->relationships,
             'links' => [],
             'meta' => [],
         ];
@@ -63,12 +71,45 @@ class JsonApiResource implements JsonSerializable
         return $data;
     }
 
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    /** @returns array<string, mixed> */
+    public function getAttributes(): array
+    {
+        return $this->attributes;
+    }
+
+    /** @returns array<string, JsonApiRelationship> */
+    public function getRelationships(): array
+    {
+        return $this->relationships;
+    }
+
     /**
      * @return TModel
      */
     public function modelInstance(): Model|JsonApiResourceContract
     {
         return $this->model;
+    }
+
+    public function isPrepared(): bool
+    {
+        return isset($this->type, $this->attributes, $this->relationships);
+    }
+
+    private function prepare(): void
+    {
+        if (! $this->model instanceof JsonApiResourceContract) {
+            $this->ensureReflectionClassIsCreated();
+        }
+
+        $this->type = $this->parseType();
+        $this->attributes = $this->parseAttributes();
+        $this->relationships = $this->parseRelationships();
     }
 
     /**
@@ -146,9 +187,10 @@ class JsonApiResource implements JsonSerializable
     }
 
     /**
-     * Returns an array of JsonApiRelationship objects to put in the relationships object
+     * Returns an array of JsonApiRelationship objects to put in the relationships object.
+     * The keys in this array should be the name of the relationship
      *
-     * @return array<int, JsonApiRelationship>
+     * @return array<string, JsonApiRelationship>
      */
     private function parseRelationships(): array
     {
@@ -160,14 +202,21 @@ class JsonApiResource implements JsonSerializable
         $relationships = [];
 
         foreach ($relationshipsToInclude as $relationName) {
+            // We ignore non-loaded relations
+            if (! $this->model->relationLoaded($relationName)) {
+                continue;
+            }
+
             $relatedModelOrCollection = $this->model->{$relationName};
 
             if ($relatedModelOrCollection instanceof Collection) {
+                $relationships[$relationName] = [];
+
                 foreach ($relatedModelOrCollection as $model) {
-                    $relationships[] = new JsonApiRelationship($model->id, $this->parseType($model));
+                    $relationships[$relationName][] = new JsonApiRelationship($model->id, $this->parseType($model));
                 }
             } else {
-                $relationships[] = new JsonApiRelationship($relatedModelOrCollection->id, $this->parseType($relatedModelOrCollection));
+                $relationships[$relationName] = new JsonApiRelationship($relatedModelOrCollection->id, $this->parseType($relatedModelOrCollection));
             }
         }
 

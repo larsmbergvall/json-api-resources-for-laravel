@@ -23,23 +23,22 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
     private Collection $jsonApiResources;
 
     /**
-     * @param  Collection<int, T>  $resources
+     * @param  Collection<int, T>  $models
      * @param  class-string|null  $model
      */
-    public function __construct(protected Collection $resources, ?string $model = null)
+    public function __construct(protected Collection $models, ?string $model = null)
     {
-        if (! $model && $this->resources->isEmpty()) {
+        if (! $model && $this->models->isEmpty()) {
             throw new InvalidArgumentException('There must be either a $model argument or at least one item in $resources!');
         }
 
         if (! $model) {
-            $this->modelClass = $this->resources->first()::class;
+            $this->modelClass = $this->models->first()::class;
         } else {
             $this->modelClass = $model;
         }
 
-        $this->jsonApiResources = $this->resources->map(fn ($resource) => JsonApiResource::make($resource));
-        $this->resources = $this->resources->keyBy('id');
+        $this->jsonApiResources = $this->models->map(fn ($resource) => JsonApiResource::make($resource));
     }
 
     public static function make(Collection $resources): static
@@ -55,7 +54,7 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
     public function toArray(): array
     {
         $payload = [
-            'data' => $this->resources->map(fn ($resource) => JsonApiResource::make($resource)->jsonSerialize())->values()->toArray(),
+            'data' => $this->jsonApiResources->jsonSerialize(),
         ];
 
         if ($this->withIncluded) {
@@ -77,12 +76,51 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
         $included = [];
 
         foreach ($this->jsonApiResources as $resource) {
-            $model = $resource->modelInstance();
+            foreach ($this->includedFromResource($resource) as $identifier => $includedItem) {
+                $included[$identifier] = $includedItem;
+            }
+        }
 
-            // TODO: Loop over all relationships in $resource and push any loaded ones into $included
-            $identifier = $model::class.'@'.$model->id;
+        return array_values($included);
+    }
 
-//            $included[$identifier] = $
+    private function includedFromResource(JsonApiResource $resource): array
+    {
+        $included = [];
+
+        $model = $resource->modelInstance();
+
+        foreach ($resource->getRelationships() as $relationName => $relationship) {
+            // We ignore non-loaded relations
+            if (! $model->relationLoaded($relationName)) {
+                ray('skipping '.$relationName);
+
+                continue;
+            }
+
+            if (is_array($relationship)) {
+                foreach ($relationship as $relationshipLinkage) {
+                    $relatedModel = $model->{$relationName}->where('id', '=', $relationshipLinkage->id)->first();
+
+                    if (! $relatedModel) {
+                        continue;
+                    }
+
+                    $identifier = "$relatedModel->type@$relatedModel->id";
+                    $included[$identifier] = JsonApiResource::make($relatedModel)->jsonSerialize();
+                }
+
+                continue;
+            }
+
+            $relatedModel = $model->{$relationName}->where('id', '=', $relationship->id)->first();
+
+            if (! $relatedModel) {
+                continue;
+            }
+
+            $identifier = "$relationship->type@$relationship->id";
+            $included[$identifier] = JsonApiResource::make($relatedModel)->jsonSerialize();
         }
 
         return $included;

@@ -22,4 +22,9 @@ class AuthorWithInterface extends Author implements JsonApiResourceContract
             'bio',
         ];
     }
+
+    public function jsonApiRelationships(): array
+    {
+        return [];
+    }
 }

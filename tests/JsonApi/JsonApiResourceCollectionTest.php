@@ -2,6 +2,7 @@
 
 use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\JsonApiResourceCollection;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Author;
+use Pest\Expectation;
 
 it('collects multiple objects', function () {
     $authors = Author::factory()->count(3)->create();
@@ -30,7 +31,8 @@ it('includes loaded relationships', function () {
         ->toHaveKey('type', 'book')
         ->toHaveKeys(['attributes', 'relationships'])
         ->and($collection['data'][0])->toHaveKey('relationships')
-        ->and($collection['data'][0]['relationships'])
+        ->and($collection['data'][0]['relationships'])->toHaveKey('books')
+        ->and($collection['data'][0]['relationships']['books'])
         ->toHaveCount(1)
         ->each
         ->toHaveKey('id', $author->books->first()->id)
@@ -38,9 +40,10 @@ it('includes loaded relationships', function () {
 });
 
 it('doesnt include non-loaded relationships', function () {
-    $authors = Author::factory()->count(3)->hasBooks(3)->create();
+    /** @var Author $author */
+    $author = Author::factory()->hasBooks(3)->create();
 
-    $collection = JsonApiResourceCollection::make($authors)
+    $collection = JsonApiResourceCollection::make(collect([$author->withoutRelations()]))
         ->withIncluded()
         ->jsonSerialize();
 
@@ -48,8 +51,8 @@ it('doesnt include non-loaded relationships', function () {
         ->toHaveKey('included')
         ->and($collection['included'])->toBeEmpty()
         ->and($collection['data'])
-        ->each(function (array $item) {
-            expect($item)->toHaveKey('relationships')
-                ->and($item['relationships'])->toBeEmpty();
+        ->each(function (Expectation $expectItem) {
+            $expectItem->toHaveKey('relationships')
+                ->relationships->toBeEmpty();
         });
 });
