@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use JsonSerializable;
 use Larsmbergvall\JsonApiResourcesForLaravel\Contracts\JsonApiResourceContract;
+use T;
 
 /**
  * @template T of Model|JsonApiResourceContract
@@ -41,9 +42,13 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
         $this->jsonApiResources = $this->models->map(fn ($resource) => JsonApiResource::make($resource));
     }
 
-    public static function make(Collection $resources): static
+    /**
+     * @param  class-string|null  $model
+     * @return JsonApiResourceCollection<T>
+     */
+    public static function make(Collection $models, ?string $model = null): static
     {
-        return new static($resources);
+        return new static($models, $model);
     }
 
     public function jsonSerialize(): array
@@ -58,7 +63,7 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
         ];
 
         if ($this->withIncluded) {
-            $payload['included'] = $this->included();
+            $payload['included'] = $this->loadIncluded()->jsonSerialize();
         }
 
         return $payload;
@@ -71,21 +76,25 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
         return $this;
     }
 
-    private function included(): array
+    private function loadIncluded(): Collection
     {
-        $included = [];
+        $included = collect();
 
         foreach ($this->jsonApiResources as $resource) {
-            foreach ($this->includedFromResource($resource) as $identifier => $includedItem) {
-                $included[$identifier] = $includedItem;
+            foreach ($this->includedFromResource($resource->withIncluded()->prepare()) as $identifier => $includedItem) {
+                $included->put($identifier, $includedItem);
             }
         }
 
-        return array_values($included);
+        return $included->values();
     }
 
-    private function includedFromResource(JsonApiResource $resource): array
+    /**
+     * @return Collection<string, JsonApiResource>
+     */
+    private function includedFromResource(JsonApiResource $resource): Collection
     {
+        return $resource->getLoadedIncluded()->keyBy(fn (JsonApiResource $r) => $r->identifier());
         $included = [];
 
         $model = $resource->modelInstance();
@@ -93,8 +102,6 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
         foreach ($resource->getRelationships() as $relationName => $relationship) {
             // We ignore non-loaded relations
             if (! $model->relationLoaded($relationName)) {
-                ray('skipping '.$relationName);
-
                 continue;
             }
 

@@ -108,6 +108,11 @@ class JsonApiResource implements JsonSerializable
         return $this->relationships;
     }
 
+    public function getLoadedIncluded(): Collection
+    {
+        return $this->loadedIncluded;
+    }
+
     /**
      * @return TModel
      */

@@ -2,6 +2,7 @@
 
 use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\JsonApiResourceCollection;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Author;
+use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Book;
 use Pest\Expectation;
 
 it('collects multiple objects', function () {
@@ -25,11 +26,8 @@ it('includes loaded relationships', function () {
         ->withIncluded()
         ->jsonSerialize();
 
-    expect($collection)->toHaveKey('included')
+    expect($collection)->toHaveIncludedResource($author->books->first()->id, 'book')
         ->and($collection['included'])->toHaveCount(1)
-        ->each->toHaveKey('id', $author->books->first()->id)
-        ->toHaveKey('type', 'book')
-        ->toHaveKeys(['attributes', 'relationships'])
         ->and($collection['data'][0])->toHaveKey('relationships')
         ->and($collection['data'][0]['relationships'])->toHaveKey('books')
         ->and($collection['data'][0]['relationships']['books'])
@@ -55,4 +53,24 @@ it('doesnt include non-loaded relationships', function () {
             $expectItem->toHaveKey('relationships')
                 ->relationships->toBeEmpty();
         });
+});
+
+it('includes nested relations that are loaded', function () {
+    $author = Author::factory()->create();
+    $book = Book::factory()
+        ->for($author)
+        ->hasReviews(1)
+        ->create();
+
+    $author->load(['books.reviews.user']);
+
+    $collection = JsonApiResourceCollection::make(collect([$author]))
+        ->withIncluded()
+        ->jsonSerialize();
+
+    expect($collection)
+        ->toHaveIncludedCount(3)
+        ->toHaveIncludedResource($book->id, 'book')
+        ->toHaveIncludedResource($book->reviews->first()->id, 'review')
+        ->toHaveIncludedResource($book->reviews->first()->user->id, 'user');
 });

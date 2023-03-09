@@ -23,3 +23,12 @@ expect()->extend('toHaveIncludedResource', function (int|string $id, string $typ
 
     return $this;
 });
+
+expect()->extend('toHaveIncludedCount', function (int $expectedCount) {
+    $expectation = expect($this->value)->toHaveKey('included');
+    $count = count($this->value['included']);
+
+    expect($count)->toEqual($expectedCount);
+
+    return $expectation;
+});
