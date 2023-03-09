@@ -20,6 +20,8 @@ class JsonApiResource implements JsonSerializable
 {
     protected bool $wrap = false;
 
+    protected bool $withIncluded = false;
+
     protected ReflectionClass $reflectionClass;
 
     protected string $type;
@@ -29,6 +31,8 @@ class JsonApiResource implements JsonSerializable
 
     /** @var array<string, JsonApiRelationship> */
     protected array $relationships;
+
+    protected Collection $loadedIncluded;
 
     /**
      * @param  TModel|JsonApiResourceContract  $model
@@ -49,6 +53,13 @@ class JsonApiResource implements JsonSerializable
         return $this;
     }
 
+    public function withIncluded(): static
+    {
+        $this->withIncluded = true;
+
+        return $this;
+    }
+
     public function jsonSerialize(): array
     {
         if (! $this->isPrepared()) {
@@ -64,8 +75,12 @@ class JsonApiResource implements JsonSerializable
             'meta' => [],
         ];
 
-        if ($this->wrap) {
-            return ['data' => $data];
+        if ($this->wrap || $this->withIncluded) {
+            $data = ['data' => $data];
+        }
+
+        if ($this->withIncluded) {
+            $data['included'] = $this->loadedIncluded->jsonSerialize();
         }
 
         return $data;
@@ -74,6 +89,11 @@ class JsonApiResource implements JsonSerializable
     public function getType(): string
     {
         return $this->type;
+    }
+
+    public function identifier(): string
+    {
+        return $this->getType().'@'.$this->modelInstance()->id;
     }
 
     /** @returns array<string, mixed> */
@@ -98,10 +118,13 @@ class JsonApiResource implements JsonSerializable
 
     public function isPrepared(): bool
     {
-        return isset($this->type, $this->attributes, $this->relationships);
+        return isset($this->type, $this->attributes, $this->relationships, $this->loadedIncluded);
     }
 
-    private function prepare(): void
+    /**
+     * Parses attributes and relationships to include, loads included models and turns them into resources.
+     */
+    public function prepare(): self
     {
         if (! $this->model instanceof JsonApiResourceContract) {
             $this->ensureReflectionClassIsCreated();
@@ -110,6 +133,12 @@ class JsonApiResource implements JsonSerializable
         $this->type = $this->parseType();
         $this->attributes = $this->parseAttributes();
         $this->relationships = $this->parseRelationships();
+
+        if ($this->withIncluded) {
+            $this->loadedIncluded = $this->loadIncluded($this);
+        }
+
+        return $this;
     }
 
     /**
@@ -241,6 +270,57 @@ class JsonApiResource implements JsonSerializable
         } catch (ErrorException $e) {
             return [];
         }
+    }
+
+    /**
+     * @return Collection<int, JsonApiResource>
+     */
+    private function loadIncluded(JsonApiResource $resource, array &$alreadyIncludedIdentifiers = []): Collection
+    {
+        $included = collect();
+
+        foreach ($resource->relationships as $relationName => $relationData) {
+            /** @var Model|Collection<int, Model> $related */
+            $related = $resource->modelInstance()->{$relationName};
+
+            if ($related instanceof Collection) {
+                foreach ($related as $relatedModel) {
+                    $resource = self::make($relatedModel)->prepare();
+
+                    if (in_array($resource->identifier(), $alreadyIncludedIdentifiers, true)) {
+                        continue;
+                    }
+
+                    $alreadyIncludedIdentifiers[] = $resource->identifier();
+                    $included->push($resource);
+                    $included = $included->merge($this->loadIncluded($resource, $alreadyIncludedIdentifiers));
+                }
+            } else {
+                $resource = self::make($related)->prepare();
+
+                if (in_array($resource->identifier(), $alreadyIncludedIdentifiers, true)) {
+                    continue;
+                }
+
+                $alreadyIncludedIdentifiers[] = $resource->identifier();
+                $included->push($resource);
+
+                $included = $included->merge($this->loadIncluded($resource, $alreadyIncludedIdentifiers));
+            }
+        }
+
+        return $included;
+    }
+
+    private function _loadIncluded(Model $relatedModel): Collection
+    {
+        $included = collect();
+
+        $resource = self::make($relatedModel)->prepare();
+        $identifier = $resource->identifier();
+        $included->put($identifier, $resource);
+
+        $included = $included->merge($this->loadIncluded($resource));
     }
 
     private function ensureReflectionClassIsCreated(): void
