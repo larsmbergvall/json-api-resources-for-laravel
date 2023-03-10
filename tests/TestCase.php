@@ -29,10 +29,10 @@ class TestCase extends Orchestra
         config()->set('database.default', 'testing');
 
         $migrations = [
-            __DIR__.'/TestingProject/database/migrations/0_users.php',
-            __DIR__.'/TestingProject/database/migrations/1_authors.php',
-            __DIR__.'/TestingProject/database/migrations/2_books.php',
-            __DIR__.'/TestingProject/database/migrations/3_reviews.php',
+            __DIR__.'/TestingProject/Database/migrations/0_users.php',
+            __DIR__.'/TestingProject/Database/migrations/1_authors.php',
+            __DIR__.'/TestingProject/Database/migrations/2_books.php',
+            __DIR__.'/TestingProject/Database/migrations/3_reviews.php',
         ];
 
         foreach ($migrations as $migrationPath) {
