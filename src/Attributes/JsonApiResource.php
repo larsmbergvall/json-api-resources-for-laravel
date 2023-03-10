@@ -8,7 +8,7 @@ use Attribute;
 class JsonApiResource
 {
     /**
-     * @param class-string $jsonApiResourceClass
+     * @param  class-string  $jsonApiResourceClass
      */
     public function __construct(public string $jsonApiResourceClass)
     {
