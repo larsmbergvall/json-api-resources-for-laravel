@@ -6,7 +6,6 @@ parameters:
     paths:
         - src
         - config
-        - database
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true
@@ -15,5 +14,17 @@ parameters:
         - '#Unsafe usage of new static\(\)#'
         - '#Access to an undefined property [A-z0-9\s]+Illuminate\\Database\\Eloquent\\Model::+\$[A-z0-9]#'
         - '#PHPDoc tag @return with type .* is not subtype of native type static.*#'
+        - '#Access to an undefined property Illuminate\\Database\\Eloquent\\Model::\$[A-z0-9_]#'
+        -
+            message: '#Undefined variable: \$this#'
+            path: tests/Pest.php
+            reportUnmatched: false
+        -
+            messages:
+                - '#Call to an undefined method Pest\\Expectation|Pest\\Support\\Extendable::[a-zA-Z0-9\\_]+\(\)#'
+                - '#Access to an undefined property Pest\\Expectation::\$.*#'
+                - '#Method .*::fromBaseFactory\(\) should return static.*+#'
+            path: tests/*
+            reportUnmatched: false
 rules:
     - \Spatie\Ray\PHPStan\RemainingRayCallRule

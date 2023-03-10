@@ -14,7 +14,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Book::class)->constrained();
             $table->decimal('score');
-            $table->foreignIdFor(User::class)->constrained();
+            $table->foreignIdFor(User::class)->nullable()->constrained();
 
             $table->timestamps();
         });

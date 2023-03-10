@@ -38,7 +38,7 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
         }
 
         /** @var Collection<int, JsonApiResource<T>> $resources */
-        $resources = $this->models->map(fn ($resource) => JsonApiResource::make($resource));
+        $resources = $this->models->map(fn ($resource) => JsonApiResource::make($resource)->withoutWrapping());
 
         $this->jsonApiResources = $resources;
     }
@@ -83,8 +83,8 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
         $included = collect();
 
         foreach ($this->jsonApiResources as $resource) {
-            foreach ($this->includedFromResource($resource->withIncluded()->prepare()) as $identifier => $includedItem) {
-                $included->put($identifier, $includedItem);
+            foreach ($this->includedFromResource($resource) as $identifier => $includedItem) {
+                $included->put($identifier, $includedItem->withoutWrapping());
             }
         }
 
@@ -96,6 +96,6 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
      */
     private function includedFromResource(JsonApiResource $resource): Collection
     {
-        return $resource->getLoadedIncluded()->keyBy(fn (JsonApiResource $r) => $r->identifier());
+        return $resource->loadIncluded()->keyBy(fn (JsonApiResource $r) => $r->identifier());
     }
 }

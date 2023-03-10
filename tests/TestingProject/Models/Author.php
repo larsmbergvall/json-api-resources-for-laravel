@@ -9,7 +9,7 @@ use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiIncludeAttributes
 use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiIncludeRelationships;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Database\Factories\AuthorFactory;
 
-#[JsonApiIncludeAttributes(['id', 'name', 'country_of_origin', 'bio', 'created_at'])]
+#[JsonApiIncludeAttributes(['name', 'country_of_origin', 'bio', 'created_at'])]
 #[JsonApiIncludeRelationships(['books'])]
 class Author extends Model
 {

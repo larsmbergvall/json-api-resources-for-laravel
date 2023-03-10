@@ -18,7 +18,7 @@ use ReflectionException;
  */
 class JsonApiResource implements JsonSerializable
 {
-    protected bool $wrap = false;
+    protected bool $wrap = true;
 
     protected bool $withIncluded = false;
 
@@ -29,8 +29,8 @@ class JsonApiResource implements JsonSerializable
     /** @var array<string, mixed> */
     protected array $attributes;
 
-    /** @var array<string, JsonApiRelationship> */
-    protected array $relationships;
+    /** @var Collection<string, JsonApiRelationship> */
+    protected Collection $relationships;
 
     protected Collection $loadedIncluded;
 
@@ -53,6 +53,13 @@ class JsonApiResource implements JsonSerializable
         return $this;
     }
 
+    public function withoutWrapping(): static
+    {
+        $this->wrap = false;
+
+        return $this;
+    }
+
     public function withIncluded(): static
     {
         $this->withIncluded = true;
@@ -67,21 +74,23 @@ class JsonApiResource implements JsonSerializable
         }
 
         $data = [
-            'id' => $this->model->id,
+            'id' => (string) $this->model->id,
             'type' => $this->type,
             'attributes' => $this->attributes,
-            'relationships' => $this->relationships,
-            'links' => [],
-            'meta' => [],
+            /** @phpstan-ignore-next-line (Yes, it does exist in this case) */
+            'relationships' => $this->relationships->isEmpty() ? (object) [] : $this->relationships->jsonSerialize()[0],
         ];
 
-        if ($this->wrap || $this->withIncluded) {
+        if ($this->wrap) {
             $data = ['data' => $data];
         }
 
         if ($this->withIncluded) {
             $data['included'] = $this->loadedIncluded->jsonSerialize();
         }
+
+        $data['links'] = (object) [];
+        $data['meta'] = (object) [];
 
         return $data;
     }
@@ -102,8 +111,8 @@ class JsonApiResource implements JsonSerializable
         return $this->attributes;
     }
 
-    /** @returns array<string, JsonApiRelationship> */
-    public function getRelationships(): array
+    /** @returns Collection<int, JsonApiRelationship> */
+    public function getRelationships(): Collection
     {
         return $this->relationships;
     }
@@ -127,7 +136,11 @@ class JsonApiResource implements JsonSerializable
     }
 
     /**
-     * Parses attributes and relationships to include, loads included models and turns them into resources.
+     * Parses attributes and relationships to include, loads included models and turns them into resources. This
+     * method sets this objects type, attributes, relationships and loadedIncluded properties and should be
+     * used before JsonSerializing it
+     *
+     * @throws ReflectionException
      */
     public function prepare(): self
     {
@@ -142,6 +155,56 @@ class JsonApiResource implements JsonSerializable
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, JsonApiResource>
+     */
+    public function loadIncluded(JsonApiResource $resource = null, array &$alreadyIncludedIdentifiers = []): Collection
+    {
+        $included = collect();
+
+        if ($resource === null) {
+            $resource = $this;
+        }
+
+        foreach ($resource->relationships as $relationData) {
+            /** @var Model|Collection<int, Model>|null $related */
+            $related = $resource->modelInstance()->{$relationData->name};
+
+            if (! $related) {
+                continue;
+            }
+
+            if ($related instanceof Collection) {
+                foreach ($related as $relatedModel) {
+                    $resource = self::make($relatedModel)->prepare();
+
+                    if (in_array($resource->identifier(), $alreadyIncludedIdentifiers, true)) {
+                        continue;
+                    }
+
+                    $alreadyIncludedIdentifiers[] = $resource->identifier();
+                    // Included items should not be wrapped in a 'data' prop
+                    $included->push($resource->withoutWrapping());
+                    $included = $included->merge($this->loadIncluded($resource, $alreadyIncludedIdentifiers));
+                }
+            } else {
+                $resource = self::make($related)->prepare();
+
+                if (in_array($resource->identifier(), $alreadyIncludedIdentifiers, true)) {
+                    continue;
+                }
+
+                $alreadyIncludedIdentifiers[] = $resource->identifier();
+                // Included items should not be wrapped in a 'data' prop
+                $included->push($resource->withoutWrapping());
+
+                $included = $included->merge($this->loadIncluded($resource, $alreadyIncludedIdentifiers));
+            }
+        }
+
+        return $included;
     }
 
     /**
@@ -173,6 +236,8 @@ class JsonApiResource implements JsonSerializable
      * Returns properties that should be in the attributes object
      *
      * @return array<string, mixed>
+     *
+     * @throws ReflectionException
      */
     private function parseAttributes(): array
     {
@@ -182,7 +247,7 @@ class JsonApiResource implements JsonSerializable
         $attributes = [];
 
         foreach ($this->model->getAttributes() as $property => $value) {
-            if (in_array($property, $attributesToInclude)) {
+            if (in_array($property, $attributesToInclude, true)) {
                 $attributes[$property] = $value;
             }
         }
@@ -200,7 +265,9 @@ class JsonApiResource implements JsonSerializable
         $phpAttributes = $this->reflectionClass->getAttributes(JsonApiIncludeAttributes::class, \ReflectionAttribute::IS_INSTANCEOF);
 
         if (empty($phpAttributes) && method_exists($this->model, 'getAttributes')) {
-            return array_keys($this->model->getAttributes());
+            $attributes = array_keys($this->model->getAttributes());
+
+            return array_filter($attributes, fn (string $key) => $key !== 'id');
         }
 
         try {
@@ -214,12 +281,12 @@ class JsonApiResource implements JsonSerializable
      * Returns an array of JsonApiRelationship objects to put in the relationships object.
      * The keys in this array should be the name of the relationship
      *
-     * @return array<string, JsonApiRelationship>
+     * @return Collection<string, JsonApiRelationship>
      */
-    private function parseRelationships(): array
+    private function parseRelationships(): Collection
     {
         $relationshipsToInclude = $this->includedRelationships();
-        $relationships = [];
+        $relationships = collect();
 
         foreach ($relationshipsToInclude as $relationName) {
             // We ignore non-loaded relations
@@ -229,15 +296,16 @@ class JsonApiResource implements JsonSerializable
 
             $relatedModelOrCollection = $this->model->{$relationName};
 
-            if ($relatedModelOrCollection instanceof Collection) {
-                $relationships[$relationName] = [];
-
-                foreach ($relatedModelOrCollection as $model) {
-                    $relationships[$relationName][] = new JsonApiRelationship($model->id, $this->parseType($model));
-                }
+            if (! $relatedModelOrCollection) {
+                $resourceIdentifiers = null;
+            } elseif ($relatedModelOrCollection instanceof Collection) {
+                $resourceIdentifiers = $relatedModelOrCollection
+                    ->map(fn (Model $m) => new ResourceIdentifierObject($m->id, $this->parseType($m)));
             } else {
-                $relationships[$relationName] = new JsonApiRelationship($relatedModelOrCollection->id, $this->parseType($relatedModelOrCollection));
+                $resourceIdentifiers = new ResourceIdentifierObject($relatedModelOrCollection->id, $this->parseType($relatedModelOrCollection));
             }
+
+            $relationships->push(new JsonApiRelationship($relationName, $resourceIdentifiers));
         }
 
         return $relationships;
@@ -261,46 +329,6 @@ class JsonApiResource implements JsonSerializable
         } catch (ErrorException $e) {
             return [];
         }
-    }
-
-    /**
-     * @return Collection<int, JsonApiResource>
-     */
-    private function loadIncluded(JsonApiResource $resource, array &$alreadyIncludedIdentifiers = []): Collection
-    {
-        $included = collect();
-
-        foreach ($resource->relationships as $relationName => $relationData) {
-            /** @var Model|Collection<int, Model> $related */
-            $related = $resource->modelInstance()->{$relationName};
-
-            if ($related instanceof Collection) {
-                foreach ($related as $relatedModel) {
-                    $resource = self::make($relatedModel)->prepare();
-
-                    if (in_array($resource->identifier(), $alreadyIncludedIdentifiers, true)) {
-                        continue;
-                    }
-
-                    $alreadyIncludedIdentifiers[] = $resource->identifier();
-                    $included->push($resource);
-                    $included = $included->merge($this->loadIncluded($resource, $alreadyIncludedIdentifiers));
-                }
-            } else {
-                $resource = self::make($related)->prepare();
-
-                if (in_array($resource->identifier(), $alreadyIncludedIdentifiers, true)) {
-                    continue;
-                }
-
-                $alreadyIncludedIdentifiers[] = $resource->identifier();
-                $included->push($resource);
-
-                $included = $included->merge($this->loadIncluded($resource, $alreadyIncludedIdentifiers));
-            }
-        }
-
-        return $included;
     }
 
     /**
