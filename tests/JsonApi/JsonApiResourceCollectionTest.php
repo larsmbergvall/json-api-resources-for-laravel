@@ -27,14 +27,9 @@ it('includes loaded relationships', function () {
         ->jsonSerialize();
 
     expect($collection)->toHaveIncludedResource($author->books->first()->id, 'book')
-        ->and($collection['included'])->toHaveCount(1)
-        ->and($collection['data'][0])->toHaveKey('relationships')
-        ->and($collection['data'][0]['relationships'])->toHaveKey('books')
-        ->and($collection['data'][0]['relationships']['books'])
-        ->toHaveCount(1)
-        ->each
-        ->toHaveKey('id', $author->books->first()->id)
-        ->toHaveKey('type', 'book');
+        ->toHaveIncludedCount(1)
+        ->and($collection['data'][0])
+        ->toHaveRelationships('books', [$author->books->first()->id], 'book');
 });
 
 it('doesnt include non-loaded relationships', function () {

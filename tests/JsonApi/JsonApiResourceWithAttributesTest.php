@@ -10,7 +10,7 @@ it('it can rename type via attributes', function () {
     $jsonArray = JsonApiResource::make($author)->jsonSerialize();
 
     // If we hadn't specified a type by using the php attribute, it would set the type to 'author_with_type_attribute'
-    expect($jsonArray)->toHaveKey('type', 'person');
+    expect($jsonArray['data'])->toHaveKey('type', 'person');
 });
 
 it('it includes fields present in include attributes attribute', function () {
@@ -18,8 +18,8 @@ it('it includes fields present in include attributes attribute', function () {
 
     $jsonArray = JsonApiResource::make($author)->jsonSerialize();
 
-    expect($jsonArray)->toHaveKey('attributes')
-        ->and($jsonArray['attributes'])->toHaveCount(2)
+    expect($data = $jsonArray['data'])->toHaveKey('attributes')
+        ->and($data['attributes'])->toHaveCount(2)
         ->toHaveKeys([
             'name',
             'country_of_origin',
