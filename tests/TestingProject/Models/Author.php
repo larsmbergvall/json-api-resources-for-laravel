@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiIncludeAttributes;
 use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiIncludeRelationships;
-use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\database\Factories\AuthorFactory;
+use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Database\Factories\AuthorFactory;
 
 #[JsonApiIncludeAttributes(['id', 'name', 'country_of_origin', 'bio', 'created_at'])]
 #[JsonApiIncludeRelationships(['books'])]
