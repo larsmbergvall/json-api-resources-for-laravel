@@ -36,7 +36,7 @@ class JsonApiResource implements JsonSerializable
     /**
      * @param  TModel  $model
      */
-    public function __construct(protected mixed $model)
+    public function __construct(protected Model $model)
     {
     }
 

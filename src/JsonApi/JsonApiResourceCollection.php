@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use JsonSerializable;
-use T;
 
 /**
  * @template T of Model
@@ -38,10 +37,16 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
             $this->modelClass = $model;
         }
 
-        $this->jsonApiResources = $this->models->map(fn ($resource) => JsonApiResource::make($resource));
+        /** @var Collection<int, JsonApiResource<T>> $resources */
+        $resources = $this->models->map(fn ($resource) => JsonApiResource::make($resource));
+
+        $this->jsonApiResources = $resources;
     }
 
     /**
+     * @template T of Model
+     *
+     * @param  Collection<int, T>  $models
      * @param  class-string|null  $model
      * @return JsonApiResourceCollection<T>
      */
@@ -94,41 +99,5 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
     private function includedFromResource(JsonApiResource $resource): Collection
     {
         return $resource->getLoadedIncluded()->keyBy(fn (JsonApiResource $r) => $r->identifier());
-        $included = [];
-
-        $model = $resource->modelInstance();
-
-        foreach ($resource->getRelationships() as $relationName => $relationship) {
-            // We ignore non-loaded relations
-            if (! $model->relationLoaded($relationName)) {
-                continue;
-            }
-
-            if (is_array($relationship)) {
-                foreach ($relationship as $relationshipLinkage) {
-                    $relatedModel = $model->{$relationName}->where('id', '=', $relationshipLinkage->id)->first();
-
-                    if (! $relatedModel) {
-                        continue;
-                    }
-
-                    $identifier = "$relatedModel->type@$relatedModel->id";
-                    $included[$identifier] = JsonApiResource::make($relatedModel)->jsonSerialize();
-                }
-
-                continue;
-            }
-
-            $relatedModel = $model->{$relationName}->where('id', '=', $relationship->id)->first();
-
-            if (! $relatedModel) {
-                continue;
-            }
-
-            $identifier = "$relationship->type@$relationship->id";
-            $included[$identifier] = JsonApiResource::make($relatedModel)->jsonSerialize();
-        }
-
-        return $included;
     }
 }
