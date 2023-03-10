@@ -1,6 +1,6 @@
 <?php
 
-namespace Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\database\factories;
+namespace Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Book;
