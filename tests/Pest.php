@@ -51,7 +51,7 @@ expect()->extend('toHaveRelationships', function (string $relationName, array $i
 
     foreach ($relationships as $relationship) {
         expect($relationship)->toHaveKey('type', $type)
-            ->and($relationship['id'])->toBeIn($ids);
+            ->and(in_array($relationship['id'], $ids, false))->toBeTrue();
         $found++;
     }
 

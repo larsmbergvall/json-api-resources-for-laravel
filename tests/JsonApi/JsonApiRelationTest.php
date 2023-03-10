@@ -33,5 +33,5 @@ it('has correct structure for one-to-many relations', function () {
         ->toHaveKey('books.data')
         ->and(data_get($relationship, 'books.data'))
         ->toHaveCount(2)
-        ->toContain(['id' => 1, 'type' => 'book'], ['id' => 2, 'type' => 'book']);
+        ->toContain(['id' => '1', 'type' => 'book'], ['id' => '2', 'type' => 'book']);
 });
