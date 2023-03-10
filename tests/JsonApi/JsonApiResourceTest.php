@@ -10,7 +10,7 @@ it('transforms id to string', function () {
 
     $jsonResource = JsonApiResource::make($author)->jsonSerialize();
 
-    expect($jsonResource['id'])->toBeString();
+    expect(data_get($jsonResource, 'data.id'))->toBeString();
 });
 
 it('does not include id as an attribute if attributes are not specified', function () {

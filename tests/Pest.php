@@ -13,7 +13,7 @@ expect()->extend('toHaveIncludedResource', function (int|string $id, string $typ
     $foundIncluded = false;
 
     foreach ($included as $resource) {
-        if ($resource['id'] === $id && $resource['type'] === $type) {
+        if ($resource['id'] === (string) $id && $resource['type'] === $type) {
             $foundIncluded = true;
             break;
         }

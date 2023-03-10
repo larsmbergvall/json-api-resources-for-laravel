@@ -80,7 +80,7 @@ class JsonApiResource implements JsonSerializable
             'relationships' => empty($this->relationships) ? (object) [] : $this->relationships,
         ];
 
-        if ($this->wrap || $this->withIncluded) {
+        if ($this->wrap) {
             $data = ['data' => $data];
         }
 
@@ -135,7 +135,9 @@ class JsonApiResource implements JsonSerializable
     }
 
     /**
-     * Parses attributes and relationships to include, loads included models and turns them into resources.
+     * Parses attributes and relationships to include, loads included models and turns them into resources. This
+     * method sets this objects type, attributes, relationships and loadedIncluded properties and should be
+     * used before JsonSerializing it
      *
      * @throws ReflectionException
      */
@@ -152,6 +154,52 @@ class JsonApiResource implements JsonSerializable
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, JsonApiResource>
+     */
+    public function loadIncluded(JsonApiResource $resource = null, array &$alreadyIncludedIdentifiers = []): Collection
+    {
+        $included = collect();
+
+        if ($resource === null) {
+            $resource = $this;
+        }
+
+        foreach ($resource->relationships as $relationName => $relationData) {
+            /** @var Model|Collection<int, Model> $related */
+            $related = $resource->modelInstance()->{$relationName};
+
+            if ($related instanceof Collection) {
+                foreach ($related as $relatedModel) {
+                    $resource = self::make($relatedModel)->prepare();
+
+                    if (in_array($resource->identifier(), $alreadyIncludedIdentifiers, true)) {
+                        continue;
+                    }
+
+                    $alreadyIncludedIdentifiers[] = $resource->identifier();
+                    // Included items should not be wrapped in a 'data' prop
+                    $included->push($resource->withoutWrapping());
+                    $included = $included->merge($this->loadIncluded($resource, $alreadyIncludedIdentifiers));
+                }
+            } else {
+                $resource = self::make($related)->prepare();
+
+                if (in_array($resource->identifier(), $alreadyIncludedIdentifiers, true)) {
+                    continue;
+                }
+
+                $alreadyIncludedIdentifiers[] = $resource->identifier();
+                // Included items should not be wrapped in a 'data' prop
+                $included->push($resource->withoutWrapping());
+
+                $included = $included->merge($this->loadIncluded($resource, $alreadyIncludedIdentifiers));
+            }
+        }
+
+        return $included;
     }
 
     /**
@@ -275,46 +323,6 @@ class JsonApiResource implements JsonSerializable
         } catch (ErrorException $e) {
             return [];
         }
-    }
-
-    /**
-     * @return Collection<int, JsonApiResource>
-     */
-    private function loadIncluded(JsonApiResource $resource, array &$alreadyIncludedIdentifiers = []): Collection
-    {
-        $included = collect();
-
-        foreach ($resource->relationships as $relationName => $relationData) {
-            /** @var Model|Collection<int, Model> $related */
-            $related = $resource->modelInstance()->{$relationName};
-
-            if ($related instanceof Collection) {
-                foreach ($related as $relatedModel) {
-                    $resource = self::make($relatedModel)->prepare();
-
-                    if (in_array($resource->identifier(), $alreadyIncludedIdentifiers, true)) {
-                        continue;
-                    }
-
-                    $alreadyIncludedIdentifiers[] = $resource->identifier();
-                    $included->push($resource);
-                    $included = $included->merge($this->loadIncluded($resource, $alreadyIncludedIdentifiers));
-                }
-            } else {
-                $resource = self::make($related)->prepare();
-
-                if (in_array($resource->identifier(), $alreadyIncludedIdentifiers, true)) {
-                    continue;
-                }
-
-                $alreadyIncludedIdentifiers[] = $resource->identifier();
-                $included->push($resource);
-
-                $included = $included->merge($this->loadIncluded($resource, $alreadyIncludedIdentifiers));
-            }
-        }
-
-        return $included;
     }
 
     /**
