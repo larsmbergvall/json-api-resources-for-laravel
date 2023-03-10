@@ -67,7 +67,7 @@ class JsonApiResource implements JsonSerializable
         }
 
         $data = [
-            'id' => $this->model->id,
+            'id' => (string) $this->model->id,
             'type' => $this->type,
             'attributes' => $this->attributes,
             'relationships' => $this->relationships,
