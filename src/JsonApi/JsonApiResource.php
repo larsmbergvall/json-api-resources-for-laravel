@@ -77,6 +77,7 @@ class JsonApiResource implements JsonSerializable
             'id' => (string) $this->model->id,
             'type' => $this->type,
             'attributes' => $this->attributes,
+            /** @phpstan-ignore-next-line (Yes, it does exist in this case) */
             'relationships' => $this->relationships->isEmpty() ? (object) [] : $this->relationships->jsonSerialize()[0],
         ];
 
@@ -110,8 +111,8 @@ class JsonApiResource implements JsonSerializable
         return $this->attributes;
     }
 
-    /** @returns array<string, JsonApiRelationship> */
-    public function getRelationships(): array
+    /** @returns Collection<int, JsonApiRelationship> */
+    public function getRelationships(): Collection
     {
         return $this->relationships;
     }
@@ -168,12 +169,14 @@ class JsonApiResource implements JsonSerializable
         }
 
         foreach ($resource->relationships as $relationData) {
-            /** @var Model|Collection<int, Model> $related */
+            /** @var Model|Collection<int, Model>|null $related */
             $related = $resource->modelInstance()->{$relationData->name};
 
             if (! $related) {
                 continue;
-            } elseif ($related instanceof Collection) {
+            }
+
+            if ($related instanceof Collection) {
                 foreach ($related as $relatedModel) {
                     $resource = self::make($relatedModel)->prepare();
 

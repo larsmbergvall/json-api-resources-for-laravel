@@ -16,7 +16,7 @@ class JsonApiRelationship implements JsonSerializable, Arrayable
     {
         return [
             $this->name => $this->related ? [
-                'data' => $this->related?->jsonSerialize(),
+                'data' => $this->related->jsonSerialize(),
             ] : null,
         ];
     }
