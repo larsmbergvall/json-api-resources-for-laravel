@@ -83,7 +83,7 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
         $included = collect();
 
         foreach ($this->jsonApiResources as $resource) {
-            foreach ($this->includedFromResource($resource->withIncluded()->prepare()) as $identifier => $includedItem) {
+            foreach ($this->includedFromResource($resource->withIncluded()->withoutWrapping()->prepare()) as $identifier => $includedItem) {
                 $included->put($identifier, $includedItem);
             }
         }

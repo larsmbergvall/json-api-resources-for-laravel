@@ -2,14 +2,44 @@
 
 use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\JsonApiResource;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Author;
+use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\AuthorWithTypeAttribute;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Review;
 
-it('transforms numbers to strings', function () {
+it('transforms id to string', function () {
     $author = Author::factory()->create();
 
     $jsonResource = JsonApiResource::make($author)->jsonSerialize();
 
     expect($jsonResource['id'])->toBeString();
+});
+
+it('does not include id as an attribute if attributes are not specified', function () {
+    $author = AuthorWithTypeAttribute::fromBaseFactory();
+
+    $jsonResource = JsonApiResource::make($author)->jsonSerialize();
+
+    expect(data_get($jsonResource, 'data.attributes'))->not->toHaveKey('id');
+});
+
+it('has the correct object structure', function () {
+    $author = Author::factory()->create();
+
+    $jsonResource = JsonApiResource::make($author)->jsonSerialize();
+
+    expect($jsonResource)->toHaveKey('data')
+        ->and($jsonResource)->toHaveKey('links')
+        ->and($jsonResource)->toHaveKey('meta');
+});
+
+it('transforms empty relationships, links and meta to objects', function () {
+    $author = Author::factory()->create();
+
+    $json = json_encode(JsonApiResource::make($author)->jsonSerialize(), JSON_THROW_ON_ERROR);
+
+    expect($json)
+        ->toContain('"relationships":{}')
+        ->toContain('"links":{}')
+        ->toContain('"meta":{}');
 });
 
 it('includes loaded relationships', function () {

@@ -18,7 +18,7 @@ use ReflectionException;
  */
 class JsonApiResource implements JsonSerializable
 {
-    protected bool $wrap = false;
+    protected bool $wrap = true;
 
     protected bool $withIncluded = false;
 
@@ -53,6 +53,13 @@ class JsonApiResource implements JsonSerializable
         return $this;
     }
 
+    public function withoutWrapping(): static
+    {
+        $this->wrap = false;
+
+        return $this;
+    }
+
     public function withIncluded(): static
     {
         $this->withIncluded = true;
@@ -70,9 +77,7 @@ class JsonApiResource implements JsonSerializable
             'id' => (string) $this->model->id,
             'type' => $this->type,
             'attributes' => $this->attributes,
-            'relationships' => $this->relationships,
-            'links' => [],
-            'meta' => [],
+            'relationships' => empty($this->relationships) ? (object) [] : $this->relationships,
         ];
 
         if ($this->wrap || $this->withIncluded) {
@@ -82,6 +87,9 @@ class JsonApiResource implements JsonSerializable
         if ($this->withIncluded) {
             $data['included'] = $this->loadedIncluded->jsonSerialize();
         }
+
+        $data['links'] = (object) [];
+        $data['meta'] = (object) [];
 
         return $data;
     }
@@ -128,6 +136,8 @@ class JsonApiResource implements JsonSerializable
 
     /**
      * Parses attributes and relationships to include, loads included models and turns them into resources.
+     *
+     * @throws ReflectionException
      */
     public function prepare(): self
     {
@@ -173,6 +183,8 @@ class JsonApiResource implements JsonSerializable
      * Returns properties that should be in the attributes object
      *
      * @return array<string, mixed>
+     *
+     * @throws ReflectionException
      */
     private function parseAttributes(): array
     {
@@ -182,7 +194,7 @@ class JsonApiResource implements JsonSerializable
         $attributes = [];
 
         foreach ($this->model->getAttributes() as $property => $value) {
-            if (in_array($property, $attributesToInclude)) {
+            if (in_array($property, $attributesToInclude, true)) {
                 $attributes[$property] = $value;
             }
         }
@@ -200,7 +212,9 @@ class JsonApiResource implements JsonSerializable
         $phpAttributes = $this->reflectionClass->getAttributes(JsonApiIncludeAttributes::class, \ReflectionAttribute::IS_INSTANCEOF);
 
         if (empty($phpAttributes) && method_exists($this->model, 'getAttributes')) {
-            return array_keys($this->model->getAttributes());
+            $attributes = array_keys($this->model->getAttributes());
+
+            return array_filter($attributes, fn (string $key) => $key !== 'id');
         }
 
         try {
