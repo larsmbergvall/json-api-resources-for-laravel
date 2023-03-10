@@ -15,3 +15,5 @@ parameters:
         - '#Unsafe usage of new static\(\)#'
         - '#Access to an undefined property [A-z0-9\s]+Illuminate\\Database\\Eloquent\\Model::+\$[A-z0-9]#'
         - '#PHPDoc tag @return with type .* is not subtype of native type static.*#'
+rules:
+    - \Spatie\Ray\PHPStan\RemainingRayCallRule
