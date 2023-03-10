@@ -61,7 +61,7 @@ it('includes loaded relationships', function () {
     $author = $author->load(['books.reviews.user.reviews']);
 
     $jsonResource = JsonApiResource::make($author)->withIncluded()->jsonSerialize();
-    ray($jsonResource);
+
     expect($jsonResource)
         ->toHaveIncludedCount(3)
         ->toHaveIncludedResource($review->user_id, 'user')

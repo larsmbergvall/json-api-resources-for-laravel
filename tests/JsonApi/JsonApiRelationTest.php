@@ -3,6 +3,14 @@
 use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\JsonApiRelationship;
 use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\ResourceIdentifierObject;
 
+it('transforms id to string', function () {
+    $resourceIdentifier = new ResourceIdentifierObject(1, 'book');
+
+    $relationship = (new JsonApiRelationship('book', $resourceIdentifier))->jsonSerialize();
+
+    expect(data_get($relationship, 'book.data.id'))->toBeString();
+});
+
 it('has correct structure for one-to-one relations', function () {
     $resourceIdentifier = new ResourceIdentifierObject(1, 'book');
 

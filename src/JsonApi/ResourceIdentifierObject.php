@@ -14,7 +14,7 @@ class ResourceIdentifierObject implements JsonSerializable, Arrayable
     public function toArray(): array
     {
         return [
-            'id' => $this->id,
+            'id' => (string) $this->id,
             'type' => $this->type,
         ];
     }
