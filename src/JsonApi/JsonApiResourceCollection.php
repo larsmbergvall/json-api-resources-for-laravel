@@ -44,8 +44,6 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
     }
 
     /**
-     * @template T of Model
-     *
      * @param  Collection<int, T>  $models
      * @param  class-string|null  $model
      * @return JsonApiResourceCollection<T>
