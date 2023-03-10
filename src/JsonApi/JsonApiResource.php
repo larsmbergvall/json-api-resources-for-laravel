@@ -11,6 +11,7 @@ use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiIncludeAttributes
 use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiIncludeRelationships;
 use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiType;
 use ReflectionClass;
+use ReflectionException;
 
 /**
  * @template TModel of Model
@@ -302,17 +303,9 @@ class JsonApiResource implements JsonSerializable
         return $included;
     }
 
-    private function _loadIncluded(Model $relatedModel): Collection
-    {
-        $included = collect();
-
-        $resource = self::make($relatedModel)->prepare();
-        $identifier = $resource->identifier();
-        $included->put($identifier, $resource);
-
-        $included = $included->merge($this->loadIncluded($resource));
-    }
-
+    /**
+     * @throws ReflectionException
+     */
     private function ensureReflectionClassIsCreated(): void
     {
         if (! isset($this->reflectionClass)) {
