@@ -7,17 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use JsonSerializable;
-use Larsmbergvall\JsonApiResourcesForLaravel\Contracts\JsonApiResourceContract;
 use T;
 
 /**
- * @template T of Model|JsonApiResourceContract
+ * @template T of Model
  */
 class JsonApiResourceCollection implements JsonSerializable, Arrayable
 {
     protected bool $withIncluded = false;
 
-    /** @var class-string<Model|JsonApiResourceContract> */
+    /** @var class-string<Model> */
     protected string $modelClass;
 
     /** @var Collection<int, JsonApiResource<T>> */

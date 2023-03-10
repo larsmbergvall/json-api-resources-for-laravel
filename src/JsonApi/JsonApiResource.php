@@ -10,11 +10,10 @@ use JsonSerializable;
 use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiIncludeAttributes;
 use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiIncludeRelationships;
 use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiType;
-use Larsmbergvall\JsonApiResourcesForLaravel\Contracts\JsonApiResourceContract;
 use ReflectionClass;
 
 /**
- * @template TModel of Model|JsonApiResourceContract
+ * @template TModel of Model
  */
 class JsonApiResource implements JsonSerializable
 {
@@ -35,7 +34,7 @@ class JsonApiResource implements JsonSerializable
     protected Collection $loadedIncluded;
 
     /**
-     * @param  TModel|JsonApiResourceContract  $model
+     * @param  TModel  $model
      */
     public function __construct(protected mixed $model)
     {
@@ -116,7 +115,7 @@ class JsonApiResource implements JsonSerializable
     /**
      * @return TModel
      */
-    public function modelInstance(): Model|JsonApiResourceContract
+    public function modelInstance(): Model
     {
         return $this->model;
     }
@@ -131,9 +130,7 @@ class JsonApiResource implements JsonSerializable
      */
     public function prepare(): self
     {
-        if (! $this->model instanceof JsonApiResourceContract) {
-            $this->ensureReflectionClassIsCreated();
-        }
+        $this->ensureReflectionClassIsCreated();
 
         $this->type = $this->parseType();
         $this->attributes = $this->parseAttributes();
@@ -149,14 +146,10 @@ class JsonApiResource implements JsonSerializable
     /**
      * Attempts to guess what to put in the json objects 'type' property.
      */
-    private function parseType(Model|JsonApiResourceContract|null $item = null): string
+    private function parseType(Model|null $item = null): string
     {
         if ($item === null) {
             $item = $this->model;
-        }
-
-        if ($item instanceof JsonApiResourceContract) {
-            return $item->jsonApiType();
         }
 
         if ($item === $this->model) {
@@ -182,10 +175,6 @@ class JsonApiResource implements JsonSerializable
      */
     private function parseAttributes(): array
     {
-        if ($this->model instanceof JsonApiResourceContract) {
-            return $this->model->jsonApiAttributes();
-        }
-
         $this->ensureReflectionClassIsCreated();
         $attributesToInclude = $this->includedAttributes();
 
@@ -228,10 +217,6 @@ class JsonApiResource implements JsonSerializable
      */
     private function parseRelationships(): array
     {
-        if ($this->model instanceof JsonApiResourceContract) {
-            return $this->model->jsonApiRelationships();
-        }
-
         $relationshipsToInclude = $this->includedRelationships();
         $relationships = [];
 
