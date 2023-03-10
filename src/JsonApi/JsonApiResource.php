@@ -29,8 +29,8 @@ class JsonApiResource implements JsonSerializable
     /** @var array<string, mixed> */
     protected array $attributes;
 
-    /** @var array<string, JsonApiRelationship> */
-    protected array $relationships;
+    /** @var Collection<string, JsonApiRelationship> */
+    protected Collection $relationships;
 
     protected Collection $loadedIncluded;
 
@@ -77,7 +77,7 @@ class JsonApiResource implements JsonSerializable
             'id' => (string) $this->model->id,
             'type' => $this->type,
             'attributes' => $this->attributes,
-            'relationships' => empty($this->relationships) ? (object) [] : $this->relationships,
+            'relationships' => $this->relationships->isEmpty() ? (object) [] : $this->relationships->jsonSerialize()[0],
         ];
 
         if ($this->wrap) {
@@ -167,11 +167,13 @@ class JsonApiResource implements JsonSerializable
             $resource = $this;
         }
 
-        foreach ($resource->relationships as $relationName => $relationData) {
+        foreach ($resource->relationships as $relationData) {
             /** @var Model|Collection<int, Model> $related */
-            $related = $resource->modelInstance()->{$relationName};
+            $related = $resource->modelInstance()->{$relationData->name};
 
-            if ($related instanceof Collection) {
+            if (! $related) {
+                continue;
+            } elseif ($related instanceof Collection) {
                 foreach ($related as $relatedModel) {
                     $resource = self::make($relatedModel)->prepare();
 
@@ -276,12 +278,12 @@ class JsonApiResource implements JsonSerializable
      * Returns an array of JsonApiRelationship objects to put in the relationships object.
      * The keys in this array should be the name of the relationship
      *
-     * @return array<string, JsonApiRelationship>
+     * @return Collection<string, JsonApiRelationship>
      */
-    private function parseRelationships(): array
+    private function parseRelationships(): Collection
     {
         $relationshipsToInclude = $this->includedRelationships();
-        $relationships = [];
+        $relationships = collect();
 
         foreach ($relationshipsToInclude as $relationName) {
             // We ignore non-loaded relations
@@ -291,15 +293,16 @@ class JsonApiResource implements JsonSerializable
 
             $relatedModelOrCollection = $this->model->{$relationName};
 
-            if ($relatedModelOrCollection instanceof Collection) {
-                $relationships[$relationName] = [];
-
-                foreach ($relatedModelOrCollection as $model) {
-                    $relationships[$relationName][] = new JsonApiRelationship($model->id, $this->parseType($model));
-                }
+            if (! $relatedModelOrCollection) {
+                $resourceIdentifiers = null;
+            } elseif ($relatedModelOrCollection instanceof Collection) {
+                $resourceIdentifiers = $relatedModelOrCollection
+                    ->map(fn (Model $m) => new ResourceIdentifierObject($m->id, $this->parseType($m)));
             } else {
-                $relationships[$relationName] = new JsonApiRelationship($relatedModelOrCollection->id, $this->parseType($relatedModelOrCollection));
+                $resourceIdentifiers = new ResourceIdentifierObject($relatedModelOrCollection->id, $this->parseType($relatedModelOrCollection));
             }
+
+            $relationships->push(new JsonApiRelationship($relationName, $resourceIdentifiers));
         }
 
         return $relationships;

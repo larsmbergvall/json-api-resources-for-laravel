@@ -3,22 +3,21 @@
 namespace Larsmbergvall\JsonApiResourcesForLaravel\JsonApi;
 
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Support\Collection;
 use JsonSerializable;
 
 class JsonApiRelationship implements JsonSerializable, Arrayable
 {
-    public function __construct(public int|string $id, public string $type)
+    public function __construct(public readonly string $name, public readonly Collection|ResourceIdentifierObject|null $related)
     {
     }
 
-    /**
-     * @return array{id: int|string, type: string}
-     */
     public function toArray(): array
     {
         return [
-            'id' => $this->id,
-            'type' => $this->type,
+            $this->name => $this->related ? [
+                'data' => $this->related?->jsonSerialize(),
+            ] : null,
         ];
     }
 
