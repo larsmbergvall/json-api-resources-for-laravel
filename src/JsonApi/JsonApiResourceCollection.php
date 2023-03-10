@@ -38,7 +38,7 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
         }
 
         /** @var Collection<int, JsonApiResource<T>> $resources */
-        $resources = $this->models->map(fn ($resource) => JsonApiResource::make($resource));
+        $resources = $this->models->map(fn ($resource) => JsonApiResource::make($resource)->withoutWrapping());
 
         $this->jsonApiResources = $resources;
     }

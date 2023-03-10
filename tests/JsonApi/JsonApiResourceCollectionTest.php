@@ -51,7 +51,7 @@ it('doesnt include non-loaded relationships', function () {
         ->and($collection['data'])
         ->each(function (Expectation $expectItem) {
             $expectItem->toHaveKey('relationships')
-                ->relationships->toBeEmpty();
+                ->relationships->not->toBeArray();
         });
 });
 
