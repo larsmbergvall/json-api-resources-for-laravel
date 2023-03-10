@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\AuthorWithIncludeAttributesAttribute;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Book;
 
+/** @extends Factory<Book> */
 class BookFactory extends Factory
 {
     protected $model = Book::class;

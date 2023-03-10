@@ -5,6 +5,7 @@ namespace Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Database
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Author;
 
+/** @extends Factory<Author> */
 class AuthorFactory extends Factory
 {
     protected $model = Author::class;

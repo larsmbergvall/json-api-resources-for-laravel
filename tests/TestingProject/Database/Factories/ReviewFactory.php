@@ -7,6 +7,7 @@ use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Book;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Review;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\User;
 
+/** @extends Factory<Review> */
 class ReviewFactory extends Factory
 {
     protected $model = Review::class;
