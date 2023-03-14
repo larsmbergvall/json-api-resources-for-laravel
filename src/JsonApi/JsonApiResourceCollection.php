@@ -2,6 +2,7 @@
 
 namespace Larsmbergvall\JsonApiResourcesForLaravel\JsonApi;
 
+use Illuminate\Contracts\Pagination\Paginator as PaginatorContract;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
@@ -22,7 +23,7 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
 
     protected Collection $models;
 
-    protected ?Paginator $paginator = null;
+    protected ?PaginatorContract $paginator = null;
 
     protected array $links;
 
@@ -30,16 +31,16 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
     private Collection $jsonApiResources;
 
     /**
-     * @param  Paginator<T>|Collection<int, T>  $models
+     * @param  Paginator<T>|PaginatorContract<T>|Collection<int, T>  $models
      * @param  class-string|null  $model
      */
-    public function __construct(Collection|Paginator $models, ?string $model = null)
+    public function __construct(Collection|Paginator|PaginatorContract $models, ?string $model = null)
     {
         if (! $model && $models->isEmpty()) {
             throw new InvalidArgumentException('There must be either a $model argument or at least one item in $resources!');
         }
 
-        if ($models instanceof Paginator) {
+        if ($models instanceof PaginatorContract) {
             $this->models = collect($models->items());
             $this->paginator = $models;
         } else {
@@ -59,11 +60,11 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
     }
 
     /**
-     * @param  Paginator<T>|Collection<int, T>  $models
+     * @param  Paginator<T>|PaginatorContract<T>|Collection<int, T>  $models
      * @param  class-string|null  $model
      * @return JsonApiResourceCollection<T>
      */
-    public static function make(Collection|Paginator $models, ?string $model = null): static
+    public static function make(Collection|Paginator|PaginatorContract $models, ?string $model = null): static
     {
         return new static($models, $model);
     }
@@ -118,7 +119,7 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
         return $resource->loadIncluded()->keyBy(fn (JsonApiResource $r) => $r->identifier());
     }
 
-    private function linksFromPaginator(Paginator $paginator): array
+    private function linksFromPaginator(Paginator|PaginatorContract $paginator): array
     {
         $serializedPaginator = $paginator->jsonSerialize();
 

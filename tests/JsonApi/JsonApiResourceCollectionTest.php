@@ -80,7 +80,7 @@ it('can create collections from paginators', function () {
         ->paginate(2);
 
     $collection = JsonApiResourceCollection::make($books);
-    ray(json_encode($collection));
+
     expect($collection)->toBeInstanceOf(JsonApiResourceCollection::class)
         ->and($serialized = $collection->jsonSerialize())
         ->toHaveKey('links')
