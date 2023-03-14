@@ -93,6 +93,10 @@ Returns this:
 }
 ```
 
+## Missing/upcoming features
+* Errors: There is no good way of returning errors at the moment. It will be implemented in the future.
+* Probably some more stuff!
+
 ## Installation
 
 You can install the package via composer:
@@ -150,7 +154,7 @@ If you have a single model, you should use `JsonApiResource`:
 use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\JsonApiResource;
 
 public function show(Book $book): JsonApiResource {
-    return JsonApiResource::make($book);
+    return jsonApiResponse(JsonApiResource::make($book));
 }
 ```
 
@@ -163,10 +167,17 @@ public function index(): JsonApiResource {
     // Can also be used with pagination:
     // return JsonApiResourceCollection::make(Book::orderBy('title')->paginate());
     
-    return JsonApiResourceCollection::make(Book::all());
+    return jsonApiResponse(JsonApiResourceCollection::make(Book::all()));
 }
 ```
 
+Regardless, you should always return your json api resources wrapped in a `JsonApiResponse` (which is pretty much just a
+regular response but with
+the correct Content-Type header for JSON:API). A simple way of doing that is using the global helper:
+
+```php
+return jsonApiResponse($content, $status, $headers)
+```
 ## Testing
 
 ```bash
