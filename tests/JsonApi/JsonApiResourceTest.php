@@ -2,6 +2,7 @@
 
 use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\JsonApiResource;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Author;
+use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\AuthorWithHiddenNameAttribute;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\AuthorWithTypeAttribute;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Review;
 
@@ -77,4 +78,12 @@ it('has null relationships', function () {
     expect($relationships = data_get($jsonResource, 'data.relationships'))
         ->toHaveKey('user')
         ->and($relationships['user'])->toBeNull();
+});
+
+it('respects model hidden property if no includeAttributes attribute is used', function () {
+    $author = AuthorWithHiddenNameAttribute::fromBaseFactory();
+
+    $jsonResource = JsonApiResource::make($author)->jsonSerialize();
+
+    expect(data_get($jsonResource, 'data.attributes.name'))->toBeNull();
 });
