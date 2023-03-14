@@ -38,7 +38,10 @@
     "autoload": {
         "psr-4": {
             "Larsmbergvall\\JsonApiResourcesForLaravel\\": "src"
-        }
+        },
+        "files": [
+            "src/Helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
