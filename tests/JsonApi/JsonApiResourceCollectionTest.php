@@ -69,3 +69,26 @@ it('includes nested relations that are loaded', function () {
         ->toHaveIncludedResource($book->reviews->first()->id, 'review')
         ->toHaveIncludedResource($book->reviews->first()->user->id, 'user');
 });
+
+it('can create collections from paginators', function () {
+    Book::factory()->count(4)->hasReviews(2)->create();
+
+    $books = Book::with([
+        'author',
+        'reviews',
+    ])
+        ->paginate(2);
+
+    $collection = JsonApiResourceCollection::make($books);
+    ray(json_encode($collection));
+    expect($collection)->toBeInstanceOf(JsonApiResourceCollection::class)
+        ->and($serialized = $collection->jsonSerialize())
+        ->toHaveKey('links')
+    ->and($serialized['links'])
+    ->toHaveKeys([
+        // Note: it should not have 'prev' because we are on the first page
+        'first',
+        'last',
+        'next',
+    ]);
+});
