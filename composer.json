@@ -4,6 +4,7 @@
     "keywords": [
         "larsmbergvall",
         "laravel",
+        "json-api",
         "json-api-resources-for-laravel"
     ],
     "homepage": "https://github.com/larsmbergvall/json-api-resources-for-laravel",
@@ -35,8 +36,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Larsmbergvall\\JsonApiResourcesForLaravel\\": "src",
-            "Larsmbergvall\\JsonApiResourcesForLaravel\\Database\\Factories\\": "database/factories"
+            "Larsmbergvall\\JsonApiResourcesForLaravel\\": "src"
         }
     },
     "autoload-dev": {
