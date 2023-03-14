@@ -264,8 +264,8 @@ class JsonApiResource implements JsonSerializable
     {
         $phpAttributes = $this->reflectionClass->getAttributes(JsonApiIncludeAttributes::class, \ReflectionAttribute::IS_INSTANCEOF);
 
-        if (empty($phpAttributes) && method_exists($this->model, 'getAttributes')) {
-            $attributes = array_keys($this->model->getAttributes());
+        if (empty($phpAttributes) && method_exists($this->model, 'attributesToArray')) {
+            $attributes = array_keys($this->model->attributesToArray());
 
             return array_filter($attributes, fn (string $key) => $key !== 'id');
         }
