@@ -121,6 +121,7 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
 
     private function linksFromPaginator(Paginator|PaginatorContract $paginator): array
     {
+        /** @phpstan-ignore-next-line */
         $serializedPaginator = $paginator->jsonSerialize();
 
         return array_map(fn (string $link) => Str::replace('\\/', '/', $link), array_filter([
