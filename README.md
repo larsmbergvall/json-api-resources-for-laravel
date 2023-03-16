@@ -289,9 +289,32 @@ But with the JsonApiMiddleware, this response changes to:
 
 ## Testing
 
-```bash
-composer test
+There are some testing utilities on the `JsonApiResource` and `JsonApiResourceCollection` classes that you can utilize
+to test your application:
+
+### assertHasData
+
+```php
+$author = Author::factory()->create();
+$resource = JsonApiResource::make($author);
+
+$id = $author->id;
+$type = 'author';
+$resource->assertHasData($id, $type);
 ```
+
+### assertDoesntHaveData
+
+```php
+$author = Author::factory()->create();
+$resource = JsonApiResourceCollection::make(collect([$author]));
+
+$id = $author->id + 999;
+$type = 'author';
+$resource->assertDoesntHave($id, $type);
+```
+
+This is the opposite of `assertHasData`. It will fail if it finds the expected data.
 
 ## Changelog
 
