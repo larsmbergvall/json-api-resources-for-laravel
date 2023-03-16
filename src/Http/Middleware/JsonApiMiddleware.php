@@ -28,7 +28,7 @@ class JsonApiMiddleware
 
         $errors = json_decode($response->getContent(), true);
 
-        if (! $errors || ! count($errors['errors'])) {
+        if (! $errors || ! array_key_exists('errors', $errors) || ! count($errors['errors'])) {
             return $response;
         }
 
