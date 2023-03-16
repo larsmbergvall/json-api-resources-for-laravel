@@ -210,7 +210,7 @@ class JsonApiResource implements JsonSerializable
     /**
      * Attempts to guess what to put in the json objects 'type' property.
      */
-    private function parseType(Model|null $item = null): string
+    protected function parseType(Model|null $item = null): string
     {
         if ($item === null) {
             $item = $this->model;
@@ -239,7 +239,7 @@ class JsonApiResource implements JsonSerializable
      *
      * @throws ReflectionException
      */
-    private function parseAttributes(): array
+    protected function parseAttributes(): array
     {
         $this->ensureReflectionClassIsCreated();
         $attributesToInclude = $this->includedAttributes();
@@ -260,7 +260,7 @@ class JsonApiResource implements JsonSerializable
      *
      * @return array<int, string>
      */
-    private function includedAttributes(): array
+    protected function includedAttributes(): array
     {
         $phpAttributes = $this->reflectionClass->getAttributes(JsonApiIncludeAttributes::class, \ReflectionAttribute::IS_INSTANCEOF);
 
@@ -283,7 +283,7 @@ class JsonApiResource implements JsonSerializable
      *
      * @return Collection<string, JsonApiRelationship>
      */
-    private function parseRelationships(): Collection
+    protected function parseRelationships(): Collection
     {
         $relationshipsToInclude = $this->includedRelationships();
         $relationships = collect();
@@ -316,7 +316,7 @@ class JsonApiResource implements JsonSerializable
      *
      * @return array<int, string>
      */
-    private function includedRelationships(): array
+    protected function includedRelationships(): array
     {
         $phpAttributes = $this->reflectionClass->getAttributes(JsonApiIncludeRelationships::class, \ReflectionAttribute::IS_INSTANCEOF);
 
@@ -334,7 +334,7 @@ class JsonApiResource implements JsonSerializable
     /**
      * @throws ReflectionException
      */
-    private function ensureReflectionClassIsCreated(): void
+    protected function ensureReflectionClassIsCreated(): void
     {
         if (! isset($this->reflectionClass)) {
             $this->reflectionClass = new ReflectionClass($this->model);
