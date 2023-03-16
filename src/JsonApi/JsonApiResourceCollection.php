@@ -98,7 +98,7 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
         return $this;
     }
 
-    private function loadIncluded(): Collection
+    protected function loadIncluded(): Collection
     {
         $included = collect();
 
@@ -114,12 +114,12 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
     /**
      * @return Collection<string, JsonApiResource>
      */
-    private function includedFromResource(JsonApiResource $resource): Collection
+    protected function includedFromResource(JsonApiResource $resource): Collection
     {
         return $resource->loadIncluded()->keyBy(fn (JsonApiResource $r) => $r->identifier());
     }
 
-    private function linksFromPaginator(Paginator|PaginatorContract $paginator): array
+    protected function linksFromPaginator(Paginator|PaginatorContract $paginator): array
     {
         /** @phpstan-ignore-next-line */
         $serializedPaginator = $paginator->jsonSerialize();
