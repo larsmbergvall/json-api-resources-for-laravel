@@ -10,7 +10,7 @@ use JsonSerializable;
 use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiIncludeAttributes;
 use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiIncludeRelationships;
 use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiType;
-use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\Traits\JsonApiTestUtilities;
+use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\Traits\TestableJsonApiResource;
 use ReflectionClass;
 use ReflectionException;
 
@@ -19,7 +19,7 @@ use ReflectionException;
  */
 class JsonApiResource implements JsonSerializable
 {
-    use JsonApiTestUtilities;
+    use TestableJsonApiResource;
 
     protected bool $wrap = true;
 
@@ -96,6 +96,11 @@ class JsonApiResource implements JsonSerializable
         $data['meta'] = (object) [];
 
         return $data;
+    }
+
+    public function getId(): int|string
+    {
+        return $this->model->id;
     }
 
     public function getType(): string

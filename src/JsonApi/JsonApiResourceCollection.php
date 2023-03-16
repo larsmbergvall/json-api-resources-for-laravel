@@ -9,14 +9,14 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use JsonSerializable;
-use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\Traits\JsonApiTestUtilities;
+use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\Traits\TestableJsonApiResourceCollection;
 
 /**
  * @template T of Model
  */
 class JsonApiResourceCollection implements JsonSerializable, Arrayable
 {
-    use JsonApiTestUtilities;
+    use TestableJsonApiResourceCollection;
 
     protected bool $withIncluded = false;
 
