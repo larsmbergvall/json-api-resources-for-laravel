@@ -20,81 +20,80 @@ Returns this:
 
 ```json
 {
-	"data": [
-		{
-			"id": "1",
-			"type": "books",
-			"attributes": {
-				"title": "Dolores Dolor Totam",
-				"year": 1871
-			},
-			"relationships": {
-				"author": {
-					"data": {
-						"id": "1",
-						"type": "author"
-					}
-				}
-			},
-			"links": {},
-			"meta": {}
-		},
-		{
-			"id": "2",
-			"type": "books",
-			"attributes": {
-				"title": "Velit Quo Omnis",
-				"year": 1969
-			},
-			"relationships": {
-				"author": {
-					"data": {
-						"id": "2",
-						"type": "author"
-					}
-				}
-			},
-			"links": {},
-			"meta": {}
-		}
-	],
-	"included": [
-		{
-			"id": "1",
-			"type": "author",
-			"attributes": {
-				"name": "Rylee Heller DDS",
-				"country_id": 18,
-				"bio": "Non iusto porro maxime. Quibusdam provident architecto magni sed id et. Voluptatem sint a numquam eius omnis aut.\n\nVoluptas quis voluptatem et fuga aspernatur eaque. Necessitatibus possimus iure corporis et quasi cum. Blanditiis quis sapiente ut dolores. Dolorem odio et quas aut et nihil qui.\n\nAut quod sint numquam. Ullam id odio velit neque non. Aut recusandae sint explicabo ut veritatis aliquid harum.",
-				"born_at": "1986-10-22 08:00:02",
-				"created_at": "2023-03-09 12:55:20",
-				"updated_at": "2023-03-09 12:55:20"
-			},
-			"relationships": {},
-			"links": {},
-			"meta": {}
-		},
-		{
-			"id": "2",
-			"type": "author",
-			"attributes": {
-				"name": "Ms. Rosella Quigley Sr.",
-				"country_id": 12,
-				"bio": "Architecto voluptas nobis sed. Ea qui quas voluptatem est nisi. Voluptatem et quis ut asperiores fuga autem blanditiis repellendus. Qui non sapiente esse quasi corporis fugit ut aut.\n\nDolorem id dolore quis qui ullam dolorem. Qui voluptatibus quia reprehenderit dolor aut est corrupti. Debitis debitis cum vitae nam quis fugit nemo. Quia labore et delectus est qui.\n\nNumquam accusantium et in. Non tenetur iure explicabo expedita sint. Quam sit qui doloremque asperiores ducimus impedit enim. In recusandae et cumque nisi ea laudantium in.",
-				"born_at": "1996-08-07 13:15:36",
-				"created_at": "2023-03-09 12:55:20",
-				"updated_at": "2023-03-09 12:55:20"
-			},
-			"relationships": {},
-			"links": {},
-			"meta": {}
-		}
-	]
+  "data": [
+    {
+      "id": "1",
+      "type": "books",
+      "attributes": {
+        "title": "Dolores Dolor Totam",
+        "year": 1871
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "1",
+            "type": "author"
+          }
+        }
+      },
+      "links": {},
+      "meta": {}
+    },
+    {
+      "id": "2",
+      "type": "books",
+      "attributes": {
+        "title": "Velit Quo Omnis",
+        "year": 1969
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "2",
+            "type": "author"
+          }
+        }
+      },
+      "links": {},
+      "meta": {}
+    }
+  ],
+  "included": [
+    {
+      "id": "1",
+      "type": "author",
+      "attributes": {
+        "name": "Rylee Heller DDS",
+        "country_id": 18,
+        "bio": "Non iusto porro maxime. Quibusdam provident architecto magni sed id et. Voluptatem sint a numquam eius omnis aut.\n\nVoluptas quis voluptatem et fuga aspernatur eaque. Necessitatibus possimus iure corporis et quasi cum. Blanditiis quis sapiente ut dolores. Dolorem odio et quas aut et nihil qui.\n\nAut quod sint numquam. Ullam id odio velit neque non. Aut recusandae sint explicabo ut veritatis aliquid harum.",
+        "born_at": "1986-10-22 08:00:02",
+        "created_at": "2023-03-09 12:55:20",
+        "updated_at": "2023-03-09 12:55:20"
+      },
+      "relationships": {},
+      "links": {},
+      "meta": {}
+    },
+    {
+      "id": "2",
+      "type": "author",
+      "attributes": {
+        "name": "Ms. Rosella Quigley Sr.",
+        "country_id": 12,
+        "bio": "Architecto voluptas nobis sed. Ea qui quas voluptatem est nisi. Voluptatem et quis ut asperiores fuga autem blanditiis repellendus. Qui non sapiente esse quasi corporis fugit ut aut.\n\nDolorem id dolore quis qui ullam dolorem. Qui voluptatibus quia reprehenderit dolor aut est corrupti. Debitis debitis cum vitae nam quis fugit nemo. Quia labore et delectus est qui.\n\nNumquam accusantium et in. Non tenetur iure explicabo expedita sint. Quam sit qui doloremque asperiores ducimus impedit enim. In recusandae et cumque nisi ea laudantium in.",
+        "born_at": "1996-08-07 13:15:36",
+        "created_at": "2023-03-09 12:55:20",
+        "updated_at": "2023-03-09 12:55:20"
+      },
+      "relationships": {},
+      "links": {},
+      "meta": {}
+    }
+  ]
 }
 ```
 
 ## Missing/upcoming features
-* Errors: There is no good way of returning errors at the moment. It will be implemented in the future.
 * Probably some more stuff!
 
 ## Installation
@@ -103,6 +102,34 @@ You can install the package via composer:
 
 ```bash
 composer require larsmbergvall/json-api-resources-for-laravel
+```
+
+**It is recommended** to use the middleware, either on all API calls:
+
+```php
+// ./app/Http/Kernel.php
+
+protected $middlewareGroups = [
+    // ...
+    // Web middleware and such
+    // ...
+    'api' => [
+        // Other api middlewares
+        JsonApiMiddleware::class,
+    ],
+]
+```
+
+Or, on a per-route basis:
+```php
+// ./routes/api.php
+
+Route::prefix('/v1')
+    ->middleware(JsonApiMiddleware::class)
+    ->group(function () {
+        // Api v1 routes
+    });
+
 ```
 
 ## Usage
@@ -153,7 +180,8 @@ If you have a single model, you should use `JsonApiResource`:
 ```php
 use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\JsonApiResource;
 
-public function show(Book $book): JsonApiResource {
+public function show(Book $book): JsonApiResource
+{
     return jsonApiResponse(JsonApiResource::make($book));
 }
 ```
@@ -163,21 +191,64 @@ If you have a collection of models, you should use `JsonApiResourceCollection`:
 ```php
 use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\JsonApiResourceCollection;
 
-public function index(): JsonApiResource {
+public function index(): JsonApiResource
+{
     // Can also be used with pagination:
     // return JsonApiResourceCollection::make(Book::orderBy('title')->paginate());
     
-    return jsonApiResponse(JsonApiResourceCollection::make(Book::all()));
+    return JsonApiResourceCollection::make(Book::all());
 }
 ```
 
-Regardless, you should always return your json api resources wrapped in a `JsonApiResponse` (which is pretty much just a
-regular response but with
-the correct Content-Type header for JSON:API). A simple way of doing that is using the global helper:
+If you need to manually return a JSON:API response, you can use the `jsonApiResponse()`-helper:
 
 ```php
 return jsonApiResponse($content, $status, $headers)
 ```
+
+It sets the correct `Content-Type` header for JSON:API responses.
+
+## Middleware
+
+The middleware primarily takes care of two things:
+1. Making sure the response that is returned has the correct headers etc.
+1. Transforming Laravels validation errors into the expected JSON:API error format
+
+The middleware should be executed *after* any other middlewares that could change the `Content-Type` header of the
+response.
+
+### Error transformation
+
+When validation fails in Laravel, normally you get a response that looks like this:
+```json
+{
+  "message": "The data.attributes.foo field is required.",
+  "errors": {
+    "data.attributes.foo": [
+      "The data.attributes.foo field is required."
+    ]
+  }
+}
+```
+
+But with the JsonApiMiddleware, this response changes to:
+```json
+{
+  "errors": [
+    {
+      "status": "422",
+      "title": "Unprocessable Content",
+      "detail": "The data.attributes.foo field is required.",
+      "source": {
+        "pointer": "data/attributes/foo",
+        "parameter": "foo"
+      }
+    }
+  ]
+}
+```
+
+
 ## Testing
 
 ```bash
