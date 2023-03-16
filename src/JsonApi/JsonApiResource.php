@@ -10,6 +10,7 @@ use JsonSerializable;
 use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiIncludeAttributes;
 use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiIncludeRelationships;
 use Larsmbergvall\JsonApiResourcesForLaravel\Attributes\JsonApiType;
+use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\Traits\JsonApiTestUtilities;
 use ReflectionClass;
 use ReflectionException;
 
@@ -18,6 +19,8 @@ use ReflectionException;
  */
 class JsonApiResource implements JsonSerializable
 {
+    use JsonApiTestUtilities;
+
     protected bool $wrap = true;
 
     protected bool $withIncluded = false;
@@ -132,7 +135,7 @@ class JsonApiResource implements JsonSerializable
 
     public function isPrepared(): bool
     {
-        return isset($this->type, $this->attributes, $this->relationships, $this->loadedIncluded);
+        return isset($this->type, $this->attributes, $this->relationships);
     }
 
     /**
@@ -166,6 +169,10 @@ class JsonApiResource implements JsonSerializable
 
         if ($resource === null) {
             $resource = $this;
+        }
+
+        if (! $resource->isPrepared()) {
+            $resource->prepare();
         }
 
         foreach ($resource->relationships as $relationData) {

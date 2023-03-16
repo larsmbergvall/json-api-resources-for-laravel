@@ -9,12 +9,15 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use JsonSerializable;
+use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\Traits\JsonApiTestUtilities;
 
 /**
  * @template T of Model
  */
 class JsonApiResourceCollection implements JsonSerializable, Arrayable
 {
+    use JsonApiTestUtilities;
+
     protected bool $withIncluded = false;
 
     protected Collection $models;
@@ -27,6 +30,11 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
     private Collection $jsonApiResources;
 
     /**
+     * @var Collection<int, JsonApiResource>
+     */
+    protected Collection $included;
+
+    /**
      * @param  Paginator<T>|PaginatorContract<T>|Collection<int, T>  $models
      */
     public function __construct(Collection|Paginator|PaginatorContract $models)
@@ -37,11 +45,6 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
         } else {
             $this->models = $models;
         }
-
-        /** @var Collection<int, JsonApiResource<T>> $resources */
-        $resources = $this->models->map(fn ($resource) => JsonApiResource::make($resource)->withoutWrapping());
-
-        $this->jsonApiResources = $resources;
     }
 
     /**
@@ -60,16 +63,20 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
 
     public function toArray(): array
     {
+        if (! $this->isPrepared()) {
+            $this->prepare();
+        }
+
         $payload = [
             'data' => $this->jsonApiResources->jsonSerialize(),
         ];
 
         if ($this->withIncluded) {
-            $payload['included'] = $this->loadIncluded()->jsonSerialize();
+            $payload['included'] = $this->included->jsonSerialize();
         }
 
-        if ($this->paginator) {
-            $payload['links'] = $this->linksFromPaginator($this->paginator);
+        if (count($this->links)) {
+            $payload['links'] = $this->links;
         }
 
         return $payload;
@@ -82,11 +89,38 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
         return $this;
     }
 
-    protected function loadIncluded(): Collection
+    /**
+     * @return Collection<int, T>
+     */
+    public function getModels(): Collection
+    {
+        return $this->models;
+    }
+
+    public function isPrepared(): bool
+    {
+        return isset($this->jsonApiResources, $this->links, $this->included);
+    }
+
+    public function prepare(): void
+    {
+        /** @var Collection<int, JsonApiResource<T>> $resources */
+        $resources = $this->models->map(fn ($resource) => JsonApiResource::make($resource)->withoutWrapping());
+
+        $this->included = $this->loadIncluded($resources);
+        $this->links = isset($this->paginator) ? $this->linksFromPaginator($this->paginator) : [];
+        $this->jsonApiResources = $resources;
+    }
+
+    /**
+     * @param  Collection<int, JsonApiResource<T>>  $resources
+     * @return Collection<int, JsonApiResource>
+     */
+    protected function loadIncluded(Collection $resources): Collection
     {
         $included = collect();
 
-        foreach ($this->jsonApiResources as $resource) {
+        foreach ($resources as $resource) {
             foreach ($this->includedFromResource($resource) as $identifier => $includedItem) {
                 $included->put($identifier, $includedItem->withoutWrapping());
             }
