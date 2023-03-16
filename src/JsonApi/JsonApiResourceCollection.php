@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use InvalidArgumentException;
 use JsonSerializable;
 
 /**
@@ -17,9 +16,6 @@ use JsonSerializable;
 class JsonApiResourceCollection implements JsonSerializable, Arrayable
 {
     protected bool $withIncluded = false;
-
-    /** @var class-string<Model> */
-    protected string $modelClass;
 
     protected Collection $models;
 
@@ -32,25 +28,14 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
 
     /**
      * @param  Paginator<T>|PaginatorContract<T>|Collection<int, T>  $models
-     * @param  class-string|null  $model
      */
-    public function __construct(Collection|Paginator|PaginatorContract $models, ?string $model = null)
+    public function __construct(Collection|Paginator|PaginatorContract $models)
     {
-        if (! $model && $models->isEmpty()) {
-            throw new InvalidArgumentException('There must be either a $model argument or at least one item in $resources!');
-        }
-
         if ($models instanceof PaginatorContract) {
             $this->models = collect($models->items());
             $this->paginator = $models;
         } else {
             $this->models = $models;
-        }
-
-        if (! $model) {
-            $this->modelClass = $this->models->first()::class;
-        } else {
-            $this->modelClass = $model;
         }
 
         /** @var Collection<int, JsonApiResource<T>> $resources */
@@ -61,12 +46,11 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
 
     /**
      * @param  Paginator<T>|PaginatorContract<T>|Collection<int, T>  $models
-     * @param  class-string|null  $model
      * @return JsonApiResourceCollection<T>
      */
-    public static function make(Collection|Paginator|PaginatorContract $models, ?string $model = null): static
+    public static function make(Collection|Paginator|PaginatorContract $models): static
     {
-        return new static($models, $model);
+        return new static($models);
     }
 
     public function jsonSerialize(): array
