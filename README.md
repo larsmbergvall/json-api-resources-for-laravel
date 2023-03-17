@@ -290,7 +290,9 @@ But with the JsonApiMiddleware, this response changes to:
 ## Testing
 
 There are some testing utilities on the `JsonApiResource` and `JsonApiResourceCollection` classes that you can utilize
-to test your application:
+to test your application.
+
+Note that more testing utilities will be coming in future versions!
 
 ### assertHasData
 
