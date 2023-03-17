@@ -4,6 +4,7 @@ namespace Larsmbergvall\JsonApiResourcesForLaravel\JsonApi;
 
 use Illuminate\Contracts\Pagination\Paginator as PaginatorContract;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
@@ -13,7 +14,7 @@ use JsonSerializable;
 /**
  * @template T of Model
  */
-class JsonApiResourceCollection implements JsonSerializable, Arrayable
+class JsonApiResourceCollection implements JsonSerializable, Arrayable, Responsable
 {
     protected bool $withIncluded = false;
 
@@ -114,5 +115,10 @@ class JsonApiResourceCollection implements JsonSerializable, Arrayable
             'prev' => data_get($serializedPaginator, 'prev_page_url'),
             'next' => data_get($serializedPaginator, 'next_page_url'),
         ]));
+    }
+
+    public function toResponse($request): JsonApiResponse
+    {
+        return new JsonApiResponse(json_encode($this));
     }
 }

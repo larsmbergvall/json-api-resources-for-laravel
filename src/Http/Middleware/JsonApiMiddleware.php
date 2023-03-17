@@ -9,13 +9,14 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\JsonApiError;
 use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\JsonApiErrorSource;
+use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\JsonApiResponse;
 
 class JsonApiMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
         $response = $next($request);
-        $response->headers->set('Content-Type', 'application/vnd.api+json');
+        $response->headers->set('Content-Type', JsonApiResponse::JSON_API_CONTENT_TYPE);
 
         return $this->transformValidationErrors($response);
     }

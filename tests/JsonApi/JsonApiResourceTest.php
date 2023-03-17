@@ -1,10 +1,13 @@
 <?php
 
 use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\JsonApiResource;
+use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\JsonApiResponse;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Author;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\AuthorWithHiddenNameAttribute;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\AuthorWithTypeAttribute;
+use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Book;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Review;
+use function Pest\Laravel\getJson;
 
 it('transforms id to string', function () {
     $author = Author::factory()->create();
@@ -86,4 +89,13 @@ it('respects model hidden property if no includeAttributes attribute is used', f
     $jsonResource = JsonApiResource::make($author)->jsonSerialize();
 
     expect(data_get($jsonResource, 'data.attributes.name'))->toBeNull();
+});
+
+it('has correct content-type header when sent as a response', function () {
+    Route::get('/test', fn () => JsonApiResource::make(Book::factory()->create()));
+
+    $response = getJson('/test');
+    $response->assertOk();
+
+    $response->assertHeader('Content-Type', JsonApiResponse::JSON_API_CONTENT_TYPE);
 });

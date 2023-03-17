@@ -1,9 +1,11 @@
 <?php
 
 use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\JsonApiResourceCollection;
+use Larsmbergvall\JsonApiResourcesForLaravel\JsonApi\JsonApiResponse;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Author;
 use Larsmbergvall\JsonApiResourcesForLaravel\Tests\TestingProject\Models\Book;
 use Pest\Expectation;
+use function Pest\Laravel\getJson;
 
 it('collects multiple objects', function () {
     $authors = Author::factory()->count(3)->create();
@@ -91,4 +93,13 @@ it('can create collections from paginators', function () {
         'last',
         'next',
     ]);
+});
+
+it('has correct content-type header when sent as a response', function () {
+    Route::get('/test', fn () => JsonApiResourceCollection::make(Book::factory()->count(2)->create()));
+
+    $response = getJson('/test');
+    $response->assertOk();
+
+    $response->assertHeader('Content-Type', JsonApiResponse::JSON_API_CONTENT_TYPE);
 });
