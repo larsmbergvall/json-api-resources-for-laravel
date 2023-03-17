@@ -16,7 +16,7 @@
             "role": "Developer"
         }
     ],
-    "version": "0.2.0",
+    "version": "0.3.0",
     "require": {
         "php": "^8.1|^8.2",
         "spatie/laravel-package-tools": "^1.14.0",

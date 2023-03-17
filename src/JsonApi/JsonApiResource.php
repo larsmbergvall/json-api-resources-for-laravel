@@ -3,6 +3,7 @@
 namespace Larsmbergvall\JsonApiResourcesForLaravel\JsonApi;
 
 use ErrorException;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -17,7 +18,7 @@ use ReflectionException;
 /**
  * @template TModel of Model
  */
-class JsonApiResource implements JsonSerializable
+class JsonApiResource implements JsonSerializable, Responsable
 {
     use TestableJsonApiResource;
 
@@ -351,5 +352,10 @@ class JsonApiResource implements JsonSerializable
         if (! isset($this->reflectionClass)) {
             $this->reflectionClass = new ReflectionClass($this->model);
         }
+    }
+
+    public function toResponse($request): JsonApiResponse
+    {
+        return new JsonApiResponse(json_encode($this));
     }
 }
