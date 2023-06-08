@@ -1,13 +1,7 @@
 # JSON:API Resources for Laravel
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/larsmbergvall/json-api-resources-for-laravel.svg?style=flat-square)](https://packagist.org/packages/larsmbergvall/json-api-resources-for-laravel)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/larsmbergvall/json-api-resources-for-laravel/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/larsmbergvall/json-api-resources-for-laravel/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/larsmbergvall/json-api-resources-for-laravel/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/larsmbergvall/json-api-resources-for-laravel/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/larsmbergvall/json-api-resources-for-laravel.svg?style=flat-square)](https://packagist.org/packages/larsmbergvall/json-api-resources-for-laravel)
-
 ## Table of Contents
 * [Example](#example)
-* [Missing/upcoming features](#missingupcoming-features)
 * [Installation](#installation)
 * [Usage](#usage)
 * [Attributes](#attributes)
@@ -111,9 +105,6 @@ Returns this:
   ]
 }
 ```
-
-## Missing/upcoming features
-* Probably some more stuff!
 
 ## Installation
 
